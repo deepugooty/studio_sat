@@ -1,0 +1,39 @@
+ [
+    {
+      "name": "ASTROSAT",
+      "type": "Spy",
+      "image": "astrosat.png"
+    },
+
+    {
+      "name": "EXOPLANET",
+      "type": "Spy",
+      "image": "exoplanet.png"
+    },
+
+    {
+      "name": "GEOEYE",
+      "type": "Weather",
+      "image": "geoeye.png"
+    },
+
+    {
+      "name": "INTELSAT",
+      "type": "Communication",
+      "image": "intelsat.png"
+    },
+
+    {
+      "name": "LUNARSAT",
+      "type": "Communication",
+      "image": "lunarsat.png"
+    },
+
+    {
+      "name": "OCEANSAT",
+      "type": "Weather",
+      "image": "oecansat.png"
+    }
+  ]
+
+

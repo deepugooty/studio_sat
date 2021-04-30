@@ -1,0 +1,700 @@
+﻿@using studio_sat.Controllers;
+@using studio_sat.Util;
+
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+
+<body style="color:white">
+
+    @section scripts
+    {
+        <script type="text/javascript">
+
+            var sec;
+            var tim;
+            //const dataStatus = 'pl-datastatus';
+            //const PLTelemetryStatus = 'pl-TMStatus';
+            //const LVTelemetryStatus = 'lv-TMStatus';
+            var dataState;
+            var PLTelemetryState;
+            var LVTelemetryState;
+            var entity;
+            var entityName;
+            var PLData;
+            var PLTM;
+            var LVTM;
+            const COUNTER_KEY = 'my-counter';
+
+            $(document).ready(function ()
+            {
+                
+                entity = document.getElementById("LVNameTag").innerHTML;
+                window.sessionStorage.setItem(entityName, entity);                
+
+                //dataState = "dataStatus" + entityName;
+                //PLTelemetryState = "PL-TMStatus" + entityName;
+                //LVTelemetryState = "lv-TMStatus" + entityName;
+
+                console.log(window.sessionStorage.getItem("LVState"+ entity));
+                console.log(window.sessionStorage.getItem("PLState"+ entity));
+                console.log(window.sessionStorage.getItem("PLData"+ entity));
+                console.log("------------------------");
+
+
+
+                if (document.getElementById("PLTypeName").className != "SPY")
+                {
+                    document.getElementById("showplimage").style.visibility = "collapse";
+                    document.getElementById("showplimage").src = "";
+                }                   
+
+                $('#PLDecommissionedButton').click(function ()
+                {
+                    window.sessionStorage.removeItem("PLState" + entity);
+                    window.sessionStorage.removeItem("PLData" + entity);
+                    clearInterval(PLData); 
+                    clearInterval(PLTM);   
+                    document.getElementById("PLDataArea").innerHTML = "";
+                    document.getElementById("showplimage").src = "";
+                    document.getElementById("PayLoadTelemetryData").innerHTML = "";
+
+                    var url = '@Url.Action("Decommission","Details")?name=' + entity;
+                    callControllerMethod(url);
+                        
+                });
+
+                function callControllerMethod(url)
+                {
+                    $.ajax({
+                            type: 'GET',
+                            url: url,
+                            success: function (data)
+                            {
+                                window.location.reload(true);
+                                console.log("success");
+                            },
+                            error: function (error)
+                            {
+                                window.location.reload(true);
+                                console.log("Error: " + error);
+                            }
+                        })
+                }
+
+                $('#LVOrbitButton').click(function ()
+                {
+                    window.sessionStorage.removeItem("LVState" + entity);
+                    clearInterval(LVTM); 
+                    document.getElementById("LVTelemetryData").innerHTML = "";
+                    var url = '@Url.Action("Deorbit","Details")?name=' + entity;
+                    callControllerMethod(url);
+
+                });
+
+                $('#launchButton').click(function ()
+                {                    
+                    
+                    var launchlink = document.getElementById("borderForLaunchButtonLink");
+                    launchlink.style.visibility = "hidden";                    
+
+                    var radius = document.getElementById("orbitRadius").className;
+                    var timeToOrbit = ((parseInt(radius)) / 3600) + 10;
+
+                    sec = timeToOrbit + 1;
+
+                    //change the status of LVLaunchStatus to Launched
+                    document.getElementById("launchStatus").innerHTML = "LAUNCHED";
+
+                    //call function to start count down
+                    calcTime();
+                });
+
+                $('#StartDataButton').click(function ()
+                {
+                    window.sessionStorage.setItem("PLData" + entity, 'enabled');
+                    checkPayLoadType();
+                });
+
+                $('#PLStartTelemetryButton').click(function ()
+                {
+                    window.sessionStorage.setItem("PLState" + entity, 'enabled');
+                    PrePLTMData();
+                    
+                });
+
+                $('#PLStopTelemetryButton').click(function ()
+                {
+                    window.sessionStorage.removeItem("PLState" + entity);
+                    clearInterval(PLTM);
+                    document.getElementById('PayLoadTelemetryData').innerHTML = "";
+                });
+
+                $('#StopDataButton').click(function ()
+                {
+                    window.sessionStorage.removeItem("PLData" + entity);
+                    clearInterval(PLData);
+                    document.getElementById('showplimage').src = "";    
+                    document.getElementById('showplimage').style.visibility = "collapse";  
+                    document.getElementById("PLDataArea").innerHTML = "";
+                    @*var url = '@Url.Action("StopData","Details")?name=' + entity;
+                    callControllerMethod(url);*@
+                });
+
+                $('#LVStartTelemetryButton').click(function ()
+                {
+                    window.sessionStorage.setItem("LVState" + entity, 'enabled');
+                    PreLVTMData();
+                });
+
+                $('#LVStopTelemetryButton').click(function ()
+                {
+                    window.sessionStorage.removeItem("LVState" + entity);
+                    clearInterval(LVTM);
+                    document.getElementById('LVTelemetryData').innerHTML = "";
+                });
+            });
+
+            function PrePLTMData()
+            {
+                PLTM = setInterval("startPLTMData()", 3000);
+            }
+
+            function PreLVTMData()
+            {
+                LVTM = setInterval("startLVTMData()", 3000);
+            }
+
+            function startPLTMData()
+            {
+                console.log("generating payload telemetry data...")
+                var data = "<h6>Lat : " + generateRandomLatNumber() + " </h6> <br/>" +
+                    "<h6>Long : " + generateRandomLngNumber() + " </h6> <br/>" +
+                    "<h6>Altitude : " + generateRandomAltNumber() + " </h6> <br/>" +
+                    "<h6>Temperature : " + generateRandomTempNumber() + " </h6>";
+
+                document.getElementById("PayLoadTelemetryData").innerHTML = data;                
+            }
+
+            function startLVTMData()
+            {
+                console.log("generating LV telemetry data...")
+                var data = "<h6>Lat : " + generateRandomLatNumber() + " </h6> <br/>" +
+                    "<h6>Long : " + generateRandomLngNumber() + " </h6> <br/>" +
+                    "<h6>Altitude : " + generateRandomAltNumber() + " </h6> <br/>" +
+                    "<h6>Temperature : " + generateRandomTempNumber() + " </h6>";
+
+                document.getElementById("LVTelemetryData").innerHTML = data;                
+            }
+
+            function generateRandomLatNumber()
+            {
+                var min = -90.000000,
+                    max = +90.000000,
+                    highlightedNumber = (Math.random() * (max - min) + min).toFixed(6);
+
+                return highlightedNumber;
+            };
+
+            function generateRandomLngNumber()
+            {
+                var min = -180.000000,
+                    max = +180.000000,
+                    highlightedNumber = (Math.random() * (max - min) + min).toFixed(6);
+
+                return highlightedNumber;
+            };
+
+             function generateRandomAltNumber()
+            {
+                var min = 400,
+                    max = 500,
+                    highlightedNumber = (Math.random() * (max - min) + min).toFixed(4);
+
+                return highlightedNumber;
+            };
+
+             function generateRandomTempNumber()
+            {
+                var min = -5,
+                    max = 120,
+                    highlightedNumber = (Math.random() * (max - min) + min).toFixed(2);
+
+                return highlightedNumber;
+            };
+
+            function generateRandomHumidityNumber()
+            {
+                var min = 20,
+                    max = 50,
+                    highlightedNumber = (Math.random() * (max - min) + min).toFixed(2);
+
+                return highlightedNumber;
+            };
+
+            function checkPayLoadType()
+            {
+                var sattype = document.getElementById("PLTypeName").className;
+                console.log(sattype);
+                    switch(sattype)
+                    {
+                        case "SPY":                            
+                            SpyAPI();
+                            break;
+
+                        case "COMMUNICATION":
+                            CommunicationAPI();
+                            break;
+                       
+                        case "WEATHER":
+                            WeatherAPI();
+                            break;
+
+                        default:
+                            SpyAPI();
+                            break;
+                    }
+            }            
+
+            function SpyAPI()
+            {
+                console.log("Inside spyAPI method");             
+                PLData = setInterval("CallSpyAPI()", 3000);
+            }
+
+            function CommunicationAPI()
+            {
+                console.log("Inside CommunicationAPI method");             
+                PLData = setInterval("CallCommunicationAPI()", 3000);
+            }
+
+            function WeatherAPI()
+            {
+                console.log("Inside WeatherAPI method");             
+                PLData = setInterval("CallWeatherAPI()", 3000);
+            }
+
+            function CallSpyAPI()
+            {
+                console.log("Inside CallSpyAPI method");               
+
+                $.ajax({
+                    //url: "https://api.nasa.gov/EPIC/api/natural/images?api_key=I5fN8I5vyfQUhVF6L40Q1bnP2h8TjtfQMyBes7qo",
+                    url: "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1600&api_key=I5fN8I5vyfQUhVF6L40Q1bnP2h8TjtfQMyBes7qo",
+                    // Whether this is a POST or GET request
+                    type: "GET",
+                })
+                    
+                .done(function (data)
+                {
+                    var img = Math.floor((Math.random() * 100) + 0);
+                    console.log(img);
+                    var x = data.photos[img];
+                    
+                    console.log("its is "+ x.img_src);
+                    console.log(data);
+                    //document.getElementById('showplimage').src = "https://epic.gsfc.nasa.gov/archive/natural/2020/12/09/thumbs/" + data[img].image +".jpg";
+                    document.getElementById('showplimage').src = x.img_src;
+                          
+                })
+                    
+                .fail(function( xhr, status, errorThrown ) {
+                console.log( "Error: " + errorThrown );
+                console.log( "Status: " + status );
+                })
+            }
+
+            function CallCommunicationAPI()
+            {
+                console.log("generating PLCommunication data...")
+                var data = "<h6>Uplink : " + generateRandomAltNumber() + " </h6> <br/>" +
+                    "<h6>Downlink : " + generateRandomAltNumber() + " </h6>";
+                document.getElementById('showplimage').src = "";
+                document.getElementById('showplimage').style.visibility = "collapse";
+                document.getElementById("PLDataArea").innerHTML = data; 
+            }
+
+            function CallWeatherAPI()
+            {
+                console.log("generating PL Weather data...")
+                var data = "<h6>Temp : " + generateRandomTempNumber() + " </h6> <br/>" +
+                    "<h6>Humidity : " + generateRandomHumidityNumber() + "% </h6> <br/>" +
+                    "<h6>Rain : " + generateRandomHumidityNumber() + "% </h6> <br/>" +
+                    "<h6>Snow : " + generateRandomHumidityNumber() + "% </h6>";
+                document.getElementById('showplimage').src = "";
+                document.getElementById('showplimage').style.visibility = "collapse";
+                document.getElementById("PLDataArea").innerHTML = data; 
+
+            }
+
+            function calcTime()
+            {
+                if (parseInt(sec) > 0)
+                {
+                    window.sessionStorage.setItem(COUNTER_KEY, sec);
+                    sec = parseInt(sec) - 1;
+
+                    document.getElementById("showtime").innerHTML = "Reaching orbit in : " + sec + " seconds";
+                    tim = setTimeout("calcTime()", 1000);
+
+                    var launchlink = document.getElementById("borderForLaunchButtonLink");
+                    launchlink.style.visibility = "hidden";
+                }
+
+                else
+                {
+                    if (parseInt(sec) == 0)
+                    {                        
+                        var lv = $('#launchButton').data('variable1');
+                        var url = '@Url.Action("Launch","Details")?name=' + lv;
+                        window.sessionStorage.removeItem(COUNTER_KEY);
+                        clearTimeout(tim);
+                        $.ajax({
+                            type: 'GET',
+                            url: url,
+                            success: function (data)
+                            {
+                                window.location.reload(true);
+                                console.log("success");
+                            },
+                            error: function (error)
+                            {
+                                window.location.reload(true);
+                                console.log("Error: " + error);
+                            }
+                        })
+                    }
+                }
+            }
+
+            window.onload = function ()
+            {
+                //alert("PL Data status is" + window.sessionStorage.getItem(dataState));
+                //alert("PL TM status is" +window.sessionStorage.getItem(PLTelemetryState));
+                //alert("LV TM status is" + window.sessionStorage.getItem(LVTelemetryState));
+                //alert("Entity Name" + window.sessionStorage.getItem(entityName));
+
+                if (parseInt(sec) > 0)
+                {  
+                    var launchlink = document.getElementById("borderForLaunchButtonLink");
+                    launchlink.style.visibility = "hidden";
+                }
+                this.sec = window.sessionStorage.getItem(COUNTER_KEY);
+                this.calcTime(); 
+
+                //var "LVState"+entity = "dataStatus" + entity;
+                //var PLTelemetryState = "PL-TMStatus" + entity;
+                //var LVTelemetryState = "lv-TMStatus" + entity;
+
+                //alert("ds value is"+dataState);
+                //alert("pl ts value is"+PLTelemetryState);
+                //alert("lv ts value is" + LVTelemetryState);
+                //alert("entity value is" + entity);
+
+                //setTimeout("checkStatusOnLoad()", 1500);  
+                console.log(window.sessionStorage.getItem("LVState"+ entity));
+                console.log(window.sessionStorage.getItem("PLState"+ entity));
+                console.log(window.sessionStorage.getItem("PLData"+ entity));
+               
+                 if (window.sessionStorage.getItem("PLData"+entity) != null && window.sessionStorage.getItem("PLData"+entity) == 'enabled')
+                {
+                    console.log("calling NASA API");
+                    checkPayLoadType();
+                }  
+
+                if (window.sessionStorage.getItem("PLState"+entity) != null && window.sessionStorage.getItem("PLState"+entity) == 'enabled')
+                {
+                    console.log("generating PL telemetry data..");
+                    PrePLTMData();
+                } 
+
+                if (window.sessionStorage.getItem("LVState"+entity) != null && window.sessionStorage.getItem("LVState"+entity) == 'enabled')
+                {
+                    console.log("generating lv telemetry data...");
+                    PreLVTMData();
+                }
+            
+            }; 
+
+
+        </script>
+
+    }
+</body>
+</html>
+
+@{
+    var data = (LaunchVehicle)Model;
+    var launchButtonStyle = data.LaunchButtonEnabled == true ? "visibility:Visible" : "visibility:collapse";
+    var deployPayloadButtonStyle = data.LVDeployPayloadEnabled == true ? "visibility:Visible" : "Cursor:not-allowed";
+    var deorbitButtonStyle = data.LVOrbitStatus == OrbitStatus.INORBIT? "visibility:Visible" : "Cursor:not-allowed";
+    var startLVTelemetryButtonStyle = data.LVTMStartStatus == TelemetryStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+    var stopLVTelemetryButtonStyle = data.LVTMStopStatus == TelemetryStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+
+    var decommisionButtonStyle = data.PayLoad.PLCommissionedStatus == CommissionedStatus.COMMISSIONED ? "visibility:Visible" : "Cursor:not-allowed";
+    var startPLTelemetryButtonStyle = data.PayLoad.PLTMStartStatus == TelemetryStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+    var stopPLTelemetryButtonStyle = data.PayLoad.PLTMStopStatus == TelemetryStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+    var startDataButtonStyle = data.PayLoad.PLDataStartStatus == DataStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+    var stopDataButtonStyle = data.PayLoad.PLDataStopStatus == DataStatus.ENABLED ? "visibility:Visible" : "Cursor:not-allowed";
+}
+
+<div class="mainGrid">
+    <text><h3 style="color:aquamarine">Studio<b>SAT</b></h3>Mission Control System for Space Z<text>
+    <a href="/Home/Index" target="_top" style="margin-left:60%; color:aquamarine; font-size:14px;">Back to Dashboard</a>
+    @*<a style="align-content:end" id="dashboardLinkButton" href="">Back To DashBoard</a>*@
+
+    <center>
+        <div class="row">
+            <div style="width:50%;">
+                <div class="card">
+                    <div class="container" style="height:700px;">
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:100%">
+                                <div style="width:100%;border:solid; border-color:transparent; border-width:2px" class="section">
+                                    <h5 style="font-size:12px; margin-top:3px;">Launch Vehicle</h5>
+                                    <img src="@Url.Content("~/app-images/Images/LaunchVehicleImages/"+@data.LVImagePath)" width="150" height="150" />
+                                    <p id="LVNameTag">@data.LVName</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:60%">
+                                <h6 style="font-size:14px; margin-top:3px">Status Message : </h6>
+                            </div>
+                            <div style="width:40%">
+                                <p id="launchStatus" style="font-size:14px; margin-top:3px">@data.LVStatusMessage</p>
+                            </div>
+                        </div>
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:60%">
+                                <h6 style="font-size:14px; margin-top:3px">Orbit Radius in KM : </h6>
+                            </div>
+                            <div style="width:40%">
+                                <p id="orbitRadius" class="@data.LVOrbitRadius" style="font-size:14px; margin-top:3px">@data.LVOrbitRadius</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-left:60px;" class="row">
+                            <div style="align-content:center" id="showtime"></div>
+                        </div>
+
+                        <div class="row" style="@launchButtonStyle;  margin-left:30%; margin-top:10px; width:100%">
+                            @if (@data.LaunchButtonEnabled == true)
+                            {
+                                <div class="col-md-4" id="borderForLaunchButtonLink" style="border:solid;border-color:aquamarine; border-width:2px; padding:5px; border-radius:6px;">
+                                    <a class="@data.LaunchButtonEnabled" id="launchButton" data-variable1="@data.LVName" href="#">Launch Now</a>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4" style="border:solid; border-color:gray; border-width:2px; padding:10px; margin:10px; border-radius:6px">
+
+                                <div id="borderForLink" style="@deployPayloadButtonStyle">
+                                    @if (@data.LVDeployPayloadEnabled == true)
+                                    {
+                                        @Html.ActionLink("Deploy Payload", "DeployPayload", "Details", new { name = @data.LVName })
+                                    }
+                                    else
+                                    {
+                                        <text>Deploy Payload</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@deorbitButtonStyle">
+                                    @if (@data.LVOrbitStatus == OrbitStatus.INORBIT)
+                                    {
+                                        <a class="@data.LVOrbitStatus" id="LVOrbitButton" href="#"> Deorbit</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Deorbit</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@startLVTelemetryButtonStyle">
+                                    @if (@data.LVTMStartStatus == TelemetryStatus.ENABLED)
+                                    {
+                                        <a class="@data.LVTMStartStatus" id="LVStartTelemetryButton" href="#"> Start Telemetry</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Start Telemetry</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@stopLVTelemetryButtonStyle">
+                                    @if (@data.LVTMStopStatus == TelemetryStatus.ENABLED)
+                                    {
+                                        <a class="@data.LVTMStopStatus" id="LVStopTelemetryButton" href="#"> Stop Telemetry</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Stop Telemetry</text>
+                                    }
+                                </div>
+                                <br />
+                            </div>
+
+                            <div class="col-md-5" style="border:solid; border-color:gray; border-width:2px; padding:10px; margin:10px; border-radius:6px">
+                                <h6 style="font-size:12px; margin-bottom:5px; margin-top:3px;">Telemetry Data</h6>
+                                <br />
+                                <div style="margin-top:0px;" id="LVTelemetryData">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+
+            <div style="width:50%">
+                <div class="card">
+                    <div class="container" style="height:700px;">
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:100%">
+                                <div style="width:100%;border:solid; border-color:transparent; border-width:2px" class="section">
+                                    <h5 style="font-size:12px; margin-top:3px;">PayLoad</h5>
+                                    <img src="@Url.Content("~/app-images/Images/PayloadImages/"+@data.PayLoad.PLImagepath)" width="150" height=" 150" />
+                                    <p>@data.PayLoad.PLName</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:60%">
+                                <h6 style="font-size:14px; margin-top:3px">Status Message : </h6>
+                            </div>
+                            <div style="width:40%">
+                                <p style="font-size:12px; margin-top:3px">@data.PayLoad.PLStatusMessage</p>
+                            </div>
+                        </div>
+                        <div style="margin-right:15px;" class="row">
+                            <div style="width:60%">
+                                <h6 style="font-size:14px; margin-top:3px">Payload Type : </h6>
+                            </div>
+                            <div style="width:40%">
+                                <p id="PLTypeName" class="@data.PayLoad.PLType" style="font-size:12px; margin-top:3px">@data.PayLoad.PLType</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4" style="border:solid; border-color:gray; border-width:2px; padding:10px; margin:10px; border-radius:6px">
+
+                                <div id="borderForLink" style="@decommisionButtonStyle">
+                                    @if (@data.PayLoad.PLCommissionedStatus == CommissionedStatus.COMMISSIONED)
+                                    {
+                                        <a class="@data.PayLoad.PLCommissionedStatus" id="PLDecommissionedButton" href="#"> Decommission</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Decommission</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@startPLTelemetryButtonStyle">
+                                    @if (@data.PayLoad.PLTMStartStatus == TelemetryStatus.ENABLED)
+                                    {
+
+                                        <a class="@data.PayLoad.PLTMStartStatus" id="PLStartTelemetryButton" href="#"> Start Telemetry</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Start Telemetry</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@stopPLTelemetryButtonStyle">
+                                    @if (@data.PayLoad.PLTMStopStatus == TelemetryStatus.ENABLED)
+                                    {
+                                        <a class="@data.PayLoad.PLTMStopStatus" id="PLStopTelemetryButton" href="#"> StopTelemetry</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Stop Telemetry</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@startDataButtonStyle">
+                                    @if (@data.PayLoad.PLDataStartStatus == DataStatus.ENABLED)
+                                    {
+                                        <a class="@data.PayLoad.PLDataStartStatus" id="StartDataButton" href="#"> Start Data</a>
+                                    }
+                                    else
+                                    {
+                                        <text>Start Data</text>
+                                    }
+                                </div>
+                                <br />
+
+                                <div id="borderForLink" style="@stopDataButtonStyle">
+                                    @if (@data.PayLoad.PLDataStopStatus == DataStatus.ENABLED)
+                                    {
+                                        <a class="@data.PayLoad.PLDataStopStatus" id="StopDataButton" href="#"> Stop Data</a>
+
+                                    }
+                                    else
+                                    {
+                                        <text>Stop Data</text>
+                                    }
+                                </div>
+                                <br />
+
+
+
+
+                            </div>
+
+                            <div class="col-md-5" style="border:solid; border-color:gray; border-width:2px; padding:10px; margin:10px; border-radius:6px">
+
+                                <div class="row" style="height:150px">
+                                    <h6 style="font-size:12px; margin-bottom:5px; margin-left:50px; margin-top:3px;">Telemetry Data</h6>
+                                    <br />
+                                    <div style="margin-left:30px; margin-top:0px;" id="PayLoadTelemetryData">
+                                    </div>
+                                </div>
+
+                                <div class="row" style="height:200px">
+                                    <h6 style="font-size:12px;  margin-left:60px; margin-top:3px;">Payload Data</h6>
+                                    <br />
+                                    <img style="margin-left:50px; margin-top:10px;" width="150" height="150" alt="" id="showplimage" />
+                                    <div style="margin-left:0px; margin-top:-100px; width:250px; height:150px" id="PLDataArea">
+                                    </div>
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </center>
+</div>
+
+
+

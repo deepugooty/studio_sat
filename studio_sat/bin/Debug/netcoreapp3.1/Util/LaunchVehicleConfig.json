@@ -1,0 +1,50 @@
+[
+    {
+      "name": "AIMONE",
+      "orbitRadius": "3600",
+      "payload": "ASTROSAT",
+      "image": "aimone.png"
+
+    },
+
+    {
+      "name": "ATLANTIS",
+      "orbitRadius": "4800",
+      "payload": "EXOPLANET",
+      "image": "atlantis.png"
+
+    },
+
+    {
+      "name": "EXPLOREONE",
+      "orbitRadius": "600",
+      "payload": "GEOEYE",
+      "image": "explorerone.png"
+
+    },
+
+    {
+      "name": "FALCON",
+      "orbitRadius": "2400",
+      "payload": "INTELSAT",
+      "image": "falcon.png"
+
+    },
+
+    {
+      "name": "FIREFLY",
+      "orbitRadius": "1200",
+      "payload": "LUNARSAT",
+      "image": "firefly.png"
+
+    },
+
+    {
+      "name": "FIREHAWK",
+      "orbitRadius": "5600",
+      "payload": "OCEANSAT",
+      "image": "firehawk.png"
+
+    }
+  ]
+

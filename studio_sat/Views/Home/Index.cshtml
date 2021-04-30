@@ -1,0 +1,115 @@
+﻿@using studio_sat.Controllers;
+
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- This is the index.html page. I named this application "Hope" which resembles the charity and services area
+This is a default home page with two links, one of which redirects to the form page for the clients to fill the form
+and another link redirects to the listing page which displays all the listings of the clients -->
+<!-- Links the styleseet to the html page -->
+<!-- The title of this page is Home -->
+<title> Home </title>
+
+<script type="text/javascript">
+    $(document).ready(function ()
+     {
+        window.location.reload(true);            
+    }); 
+</script>
+
+
+<!-- This page has a form with two options eithwe to Fill up the form ot to Find all the listings-->
+
+<div class="mainGrid">
+    <text>
+        <h3 style="color:aquamarine">Studio<b>SAT</b></h3><h6>Mission Control System for Space Z</h6><text>
+
+            <center>
+                <div class="row">
+                    @foreach (var item in (List<LaunchVehicle>)Model)
+                    {
+                        var data = (LaunchVehicle)item;
+
+                        <div style="width:50%">
+                            <div class="card">
+                                <div class="container">
+                                    <div style="margin-right:15px;" class="row">
+                                        <div style="width:50%">
+                                            <div style="width:100%;border:solid; border-color:lightslategray; border-width:2px" class="section">
+                                                <h5 style="font-size:8px; margin-top:3px;">Launch Vehicle</h5>
+                                                @*<img src="C:\Users\Deepu\source\repos\studio_sat\studio_sat\Images\LaunchVehicleImages\aimone.png" width="300" />*@
+                                                <img src="@Url.Content("~/app-images/Images/LaunchVehicleImages/"+@data.LVImagePath)" width="150" height="150" />
+                                                <p>@data.LVName</p>
+                                            </div>
+                                        </div>
+                                        <div style="width:50%">
+                                            <div style="width:100%;border:solid; border-color:lightslategray; border-width:2px" class="section">
+                                                <h5 style="font-size:8px; margin-top:3px">Payload</h5>
+                                                @*<img src="@data.PayLoad.PLImagepath" width="300px" />*@
+                                                <img src="@Url.Content("~/app-images/Images/PayloadImages/"+@data.PayLoad.PLImagepath)" width="150" height="150" />
+                                                <p>@data.PayLoad.PLName</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-right:15px;" class="row">
+                                        <div style="width:60%">
+                                            <h6 style="font-size:12px; margin-top:3px">Launch Status : </h6>
+                                        </div>
+                                        <div style="width:40%">
+                                            <p style="font-size:12px; margin-top:3px">@data.LVStatusMessage</p>
+                                        </div>
+                                    </div>
+                                    <div style="margin-right:15px;" class="row">
+                                        <button style="width:50px; align-content:center; height:20px">
+                                            @Html.ActionLink("Select", "IndexOne", "Details", new { name = @data.LVName })
+                                        </button>
+                                    </div>
+                                </div>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+
+
+
+            </center>
+            <center>
+                @*<form>
+
+                    <a href="{{ url_for('form') }}">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        Fill up the Form
+                    </a>
+
+                    <a href="{{ url_for('listing') }}">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        Find all the listings
+                    </a>
+
+                </form>*@
+
+                @*@foreach (var item in (List<LaunchVehicle>)Model)
+                {
+                    var data = (LaunchVehicle)item;
+                    <h2>@data.LVName</h2>
+                }*@
+
+            </center>
+</div>
+
+
+
